@@ -346,9 +346,8 @@ const gotoNextPage = () => {
 const updateInputBox = () => {
   if (CONFIG.allow_capital_letters) {
     const input_box = document.getElementById("shortUrl");
-    input_box.pattern = "[A-Za-z0-9\\\-_]+";
-    input_box.title = "Only A-Z, a-z, 0-9, - and _ are allowed";
-    input_box.placeholder = "Only A-Z, a-z, 0-9, - and _ are allowed";
+    input_box.title = "Lots of unicode characters are allowed";
+    input_box.placeholder = "Lots of unicode characters are allowed";
   }
 };
 

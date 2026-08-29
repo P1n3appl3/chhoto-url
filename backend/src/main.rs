@@ -23,6 +23,7 @@ mod background;
 mod config;
 mod database;
 mod services;
+mod unicode;
 
 use services::utils;
 

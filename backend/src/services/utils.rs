@@ -8,7 +8,7 @@ use nanoid::nanoid;
 use rand::{random_range, seq::IndexedRandom};
 use rusqlite::Connection;
 use serde::Deserialize;
-use std::env;
+use std::{env, iter};
 use tokio::sync::mpsc;
 use url::Url;
 
@@ -51,13 +51,7 @@ fn is_longlink_valid(link: &str, allowed_protocols: &[String]) -> bool {
 // Only have a-z, 0-9, - and _ as valid characters in a shortlink
 #[inline]
 fn is_shortlink_valid(link: &str, allow_capital_letters: bool) -> bool {
-    if allow_capital_letters {
-        link.chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-    } else {
-        link.chars()
-            .all(|c| c.is_ascii_digit() || c.is_ascii_lowercase() || c == '_' || c == '-')
-    }
+    true
 }
 
 // Only have printable ascii characters as valid characters in notes
@@ -392,6 +386,17 @@ fn gen_link(
             } else {
                 format!("{adj}-{name}")
             }
+        }
+        SlugStyle::Unicode => {
+            let slug_len = if try_longer_slug { len + 1 } else { len };
+            debug!("Generating a link with style: Unicode, length: {slug_len}");
+            iter::repeat_with(|| {
+                crate::unicode::UNICODE
+                    .choose(&mut rand::rng())
+                    .expect("Error choosing random unicode character")
+            })
+            .take(slug_len)
+            .collect()
         }
     }
 }
