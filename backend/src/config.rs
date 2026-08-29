@@ -17,6 +17,7 @@ use crate::auth;
 pub(crate) enum SlugStyle {
     Pair,
     Uid,
+    Unicode,
 }
 impl Display for SlugStyle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -26,6 +27,7 @@ impl Display for SlugStyle {
             match self {
                 Self::Pair => "Pair",
                 Self::Uid => "UID",
+                Self::Unicode => "Unicode",
             }
         )
     }
@@ -316,21 +318,33 @@ pub(crate) fn read() -> Config {
         .filter(|s| !s.is_empty())
         .inspect(|t| info!(r#"Found custom site title config: "{t}""#,));
 
-    let slug_length = read_config_wrapper("CHHOTO_SLUG_LENGTH", "slug_length")
+    let mut slug_length = read_config_wrapper("CHHOTO_SLUG_LENGTH", "slug_length")
         .ok()
         .and_then(|s| s.parse::<usize>().ok())
-        .filter(|&s| s >= 4)
         .unwrap_or(8);
     let try_longer_slug = read_config_wrapper("CHHOTO_TRY_LONGER_SLUG", "try_longer_slug")
         .is_ok_and(|s| s.trim() == "True");
     let slug_style =
         match read_config_wrapper("CHHOTO_SLUG_STYLE", "slug_style").map(|s| s.trim().to_owned()) {
             Ok(style) if style == "UID" => {
+                if slug_length < 4 {
+                    slug_length = 8;
+                }
                 info!("Using UID slugs with length {slug_length}.");
                 if try_longer_slug {
                     info!("Will retry with a longer slug upon collision.");
                 }
                 SlugStyle::Uid
+            }
+            Ok(style) if style == "UNICODE" => {
+                if slug_length < 2 {
+                    slug_length = 2;
+                }
+                info!("Using UID slugs with length {slug_length}.");
+                if try_longer_slug {
+                    info!("Will retry with a longer slug upon collision.");
+                }
+                SlugStyle::Unicode
             }
             _ => {
                 info!("Using adjective-noun pair slugs.");
